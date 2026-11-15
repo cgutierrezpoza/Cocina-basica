@@ -10,6 +10,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/styles.css">
+<style>
+/* Contador de visitas */
+.visit-stat{position:relative;padding-left:18px}
+.visit-stat::before{content:"";position:absolute;left:0;top:10px;width:9px;height:9px;border-radius:50%;background:#3E9C78;box-shadow:0 0 0 0 rgba(62,156,120,.5);animation:latido 2s infinite}
+@keyframes latido{70%{box-shadow:0 0 0 10px rgba(62,156,120,0)}100%{box-shadow:0 0 0 0 rgba(62,156,120,0)}}
+</style>
 </head>
 <body data-slug="" style="">
 <header class="nav">
@@ -35,6 +41,7 @@
         <div><b>6</b><span>áreas</span></div>
         <div><b>11</b><span>recetas</span></div>
         <div><b>54</b><span>salsas derivadas</span></div>
+        <div class="visit-stat" id="visitas" hidden><b id="visitas-num">0</b><span>personas han visitado</span></div>
       </div>
     </div>
     <div class="hero-art" aria-hidden="false"><a class="hero-card c1" href="recetas/bechamel.html"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/2021_Sos_beszamelowy.jpg?width=700" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='assets/img/recetas/bechamel.svg'"><span>Bechamel</span></a><a class="hero-card c2" href="recetas/salsa-espanola.html"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Sauce_Spagnole-09.JPG?width=700" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='assets/img/recetas/salsa-espanola.svg'"><span>Salsa española</span></a><a class="hero-card c3" href="recetas/masa-para-pastas.html"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/The_Art_of_Pasta_Making_in_Italy_with_Mama_Isa.jpg?width=700" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='assets/img/recetas/masa-para-pastas.svg'"><span>Masa para pastas frescas</span></a></div>
@@ -261,5 +268,31 @@
 </footer>
 <button class="to-top" aria-label="Volver arriba">↑</button>
 <script src="assets/js/main.js"></script>
+<script>
+/* Contador de visitas (servicio gratuito Abacus). Cada navegador se cuenta una sola vez. */
+(function () {
+  var API = "https://abacus.jasoncameron.dev";
+  var CONTADOR = "cocina-basica-duocuc-sanandres/visitas";
+  var yaVisito = false;
+  try { yaVisito = localStorage.getItem("cb-visitado") === "1"; } catch (e) {}
+  fetch(API + (yaVisito ? "/get/" : "/hit/") + CONTADOR)
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (typeof d.value !== "number") return;
+      try { localStorage.setItem("cb-visitado", "1"); } catch (e) {}
+      var caja = document.getElementById("visitas"), num = document.getElementById("visitas-num");
+      caja.hidden = false;
+      var fin = d.value, t0 = null;
+      function paso(t) {
+        if (!t0) t0 = t;
+        var p = Math.min((t - t0) / 1200, 1);
+        num.textContent = Math.round(fin * (1 - Math.pow(1 - p, 3))).toLocaleString("es-CL");
+        if (p < 1) requestAnimationFrame(paso);
+      }
+      requestAnimationFrame(paso);
+    })
+    .catch(function () { /* si el servicio no responde, el contador simplemente no se muestra */ });
+})();
+</script>
 </body>
 </html>
